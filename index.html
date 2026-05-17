@@ -12,7 +12,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Garante que o aplicativo ocupe a tela inteira sem rolar a página de fundo */
         html, body {
             width: 100%;
             height: 100%;
@@ -26,7 +25,7 @@
             align-items: center;
         }
 
-        /* --- TELA DE LOGIN / CADASTRO (TALKR) --- */
+        /* --- TELA DE LOGIN / CADASTRO --- */
         .auth-container {
             width: 100%;
             max-width: 450px;
@@ -87,23 +86,11 @@
             margin-top: 10px;
         }
 
-        .auth-btn:hover {
-            background-color: #008f72;
-        }
+        .auth-btn:hover { background-color: #008f72; }
+        .toggle-auth { margin-top: 20px; font-size: 14px; color: #667781; }
+        .toggle-auth a { color: #00a884; text-decoration: none; font-weight: 600; }
 
-        .toggle-auth {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #667781;
-        }
-
-        .toggle-auth a {
-            color: #00a884;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        /* --- INTERFACE DO CHAT (TALKR APP) --- */
+        /* --- INTERFACE DO CHAT --- */
         .app-container {
             display: none;
             width: 100%;
@@ -126,7 +113,7 @@
             background-color: #fff;
         }
 
-        .header {
+        .sidebar-header {
             height: 60px;
             min-height: 60px;
             background-color: #f0f2f5;
@@ -134,6 +121,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
+            border-bottom: 1px solid #e9edef;
         }
 
         .avatar {
@@ -144,6 +132,38 @@
             object-fit: cover;
         }
 
+        /* Gerenciador de Salas Privadas */
+        .room-manager {
+            padding: 12px 16px;
+            background-color: #f6f8fa;
+            border-bottom: 1px solid #e9edef;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .room-manager input {
+            width: 100%;
+            height: 36px;
+            padding: 0 10px;
+            border: 1px solid #e9edef;
+            border-radius: 6px;
+            outline: none;
+            font-size: 13px;
+        }
+
+        .room-manager button {
+            height: 32px;
+            background-color: #00a884;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .room-manager button:hover { background-color: #008f72; }
+
         .chat-list {
             flex: 1;
             overflow-y: auto;
@@ -151,23 +171,22 @@
 
         .chat-item {
             display: flex;
-            padding: 12px 16px;
+            padding: 15px 16px;
             cursor: pointer;
             border-bottom: 1px solid #f0f2f5;
             align-items: center;
-            background-color: #ebebeb;
+            transition: background-color 0.2s;
         }
+        .chat-item:hover { background-color: #f5f6f6; }
+        .chat-item.active { background-color: #ebebeb; }
 
         .chat-info {
             flex: 1;
             margin-left: 15px;
         }
 
-        .chat-info-header h4 {
-            font-size: 16px;
-            color: #111b21;
-            font-weight: 500;
-        }
+        .chat-info h4 { font-size: 15px; color: #111b21; font-weight: 500; }
+        .chat-info p { font-size: 12px; color: #667781; margin-top: 2px; }
 
         /* Janela Principal do Chat */
         .chat-window {
@@ -181,7 +200,16 @@
             position: relative;
         }
 
-        /* Área das mensagens com rolagem interna */
+        .chat-window-header {
+            height: 60px;
+            min-height: 60px;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border-bottom: 1px solid #e9edef;
+        }
+
         .chat-messages {
             flex: 1;
             padding: 20px 5%;
@@ -201,17 +229,8 @@
             word-wrap: break-word;
         }
 
-        .message.received {
-            background-color: #fff;
-            align-self: flex-start;
-            border-top-left-radius: 0;
-        }
-
-        .message.sent {
-            background-color: #d9fdd3;
-            align-self: flex-end;
-            border-top-right-radius: 0;
-        }
+        .message.received { background-color: #fff; align-self: flex-start; border-top-left-radius: 0; }
+        .message.sent { background-color: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
 
         .msg-userId {
             font-size: 11px;
@@ -229,7 +248,6 @@
             display: block;
         }
 
-        /* Campo de Digitação - Fixado perfeitamente na base */
         .chat-input-area {
             height: 62px;
             min-height: 62px;
@@ -251,20 +269,11 @@
             font-size: 15px;
         }
 
-        .btn-send {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #54656f;
-            font-size: 20px;
-            padding: 8px;
-        }
+        .btn-send { background: none; border: none; cursor: pointer; color: #54656f; font-size: 20px; padding: 8px; }
 
-        /* --- CONFIGURAÇÃO DE TELAS (PC VS CELULAR) --- */
+        /* --- CONFIGURAÇÃO DE TELAS --- */
         @media (min-width: 769px) {
-            body {
-                background-color: #d1d7db;
-            }
+            body { background-color: #d1d7db; }
             .app-container {
                 width: 95%;
                 max-width: 1396px;
@@ -275,16 +284,12 @@
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                display: none; /* Esconde lista de contatos no celular para focar no chat */
-            }
-            .auth-container {
-                margin: 15px;
-                padding: 20px;
-            }
-            .message {
-                max-width: 85%;
-            }
+            /* No mobile, se o chat estiver aberto, esconde a sidebar */
+            .app-container.chat-active .sidebar { display: none; }
+            .app-container:not(.chat-active) .chat-window { display: none; }
+            .sidebar { width: 100%; max-width: none; }
+            .auth-container { margin: 15px; padding: 20px; }
+            .message { max-width: 85%; }
         }
     </style>
 </head>
@@ -323,32 +328,38 @@
 
     <div class="app-container" id="chatScreen">
         <aside class="sidebar">
-            <div class="header">
+            <div class="sidebar-header">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <img src="https://picsum.photos/40/40?random=1" alt="Meu Perfil" class="avatar">
                     <span id="myDisplayNick" style="font-weight: 600; color: #111b21; font-size: 14px;">Nick</span>
                 </div>
                 <span style="font-size: 12px; font-weight: 700; color: #00a884; background: #e8faf4; padding: 3px 8px; border-radius: 20px;">Talkr App</span>
             </div>
-            <div class="chat-list">
-                <div class="chat-item">
-                    <img src="https://picsum.photos/40/40?random=2" alt="Contato" class="avatar">
+
+            <div class="room-manager">
+                <input type="text" id="roomCodeInput" placeholder="Código de sala privada">
+                <button onclick="joinPrivateRoom()">Entrar / Criar Sala Privada</button>
+            </div>
+
+            <div class="chat-list" id="roomsList">
+                <div class="chat-item active" id="item-geral" onclick="switchRoom('geral')">
+                    <img src="https://picsum.photos/40/40?random=99" class="avatar" alt="Geral">
                     <div class="chat-info">
-                        <div class="chat-info-header">
-                            <h4>Sala Geral</h4>
-                        </div>
+                        <h4>Sala Geral</h4>
+                        <p>Chat público global</p>
                     </div>
                 </div>
-            </div>
+                </div>
         </aside>
 
         <main class="chat-window">
-            <div class="header">
+            <div class="chat-window-header">
+                <button id="btnBack" style="display:none; margin-right:15px; background:none; border:none; font-size:20px; cursor:pointer;" onclick="backToSidebar()">←</button>
                 <div style="display: flex; align-items: center; gap: 15px;">
-                    <img src="https://picsum.photos/40/40?random=2" alt="Contato" class="avatar">
+                    <img src="https://picsum.photos/40/40?random=99" id="currentRoomAvatar" alt="Sala Atual" class="avatar">
                     <div>
-                        <h4 style="color: #111b21; font-size: 16px; font-weight: 500;">Sala Geral</h4>
-                        <span style="color: #667781; font-size: 13px;">Mensagens criptografadas por regras</span>
+                        <h4 id="currentRoomTitle" style="color: #111b21; font-size: 16px; font-weight: 500;">Sala Geral</h4>
+                        <span id="currentRoomSubtitle" style="color: #667781; font-size: 13px;">Chat público global</span>
                     </div>
                 </div>
             </div>
@@ -365,13 +376,12 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
-            getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp 
+            getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { 
             getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // Suas credenciais mantidas intactas
         const firebaseConfig = {
             apiKey: "AIzaSyA5EOG4RmeobQtlkvaurl1wCfKq-SXqxic",
             authDomain: "chat-27707.firebaseapp.com",
@@ -387,15 +397,17 @@
 
         let isSignUpMode = true; 
         let currentUserData = null;
+        let activeRoomId = 'geral'; // Controla qual sala está na tela
+        let activeSnapshotUnsubscribe = null; // Limpa o escutador antigo ao mudar de sala
+        let joinedPrivateRooms = JSON.parse(localStorage.getItem('talkr_rooms')) || []; // Salva as salas locais que você entrou
 
         const authScreen = document.getElementById('authScreen');
         const chatScreen = document.getElementById('chatScreen');
 
-        // Alternar Login/Cadastro
+        // Alternar visualização Auth
         window.toggleAuthMode = function(e) {
             e.preventDefault();
             isSignUpMode = !isSignUpMode;
-            
             const nickGroup = document.getElementById('nickGroup');
             const authTitle = document.getElementById('authTitle');
             const authBtn = document.getElementById('authBtn');
@@ -403,21 +415,15 @@
             const toggleLink = document.getElementById('toggleLink');
 
             if (isSignUpMode) {
-                authTitle.innerText = "Criar uma Conta";
-                nickGroup.style.display = "block";
-                authBtn.innerText = "Cadastrar e Entrar";
-                toggleText.innerText = "Já tem uma conta?";
-                toggleLink.innerText = "Fazer Login";
+                authTitle.innerText = "Criar uma Conta"; nickGroup.style.display = "block"; authBtn.innerText = "Cadastrar e Entrar";
+                toggleText.innerText = "Já tem uma conta?"; toggleLink.innerText = "Fazer Login";
             } else {
-                authTitle.innerText = "Boas-vindas de volta!";
-                nickGroup.style.display = "none";
-                authBtn.innerText = "Entrar";
-                toggleText.innerText = "Não tem uma conta?";
-                toggleLink.innerText = "Cadastre-se";
+                authTitle.innerText = "Boas-vindas de volta!"; nickGroup.style.display = "none"; authBtn.innerText = "Entrar";
+                toggleText.innerText = "Não tem uma conta?"; toggleLink.innerText = "Cadastre-se";
             }
         }
 
-        // Processo de autenticação
+        // Handle Login/Cadastro
         window.handleAuth = async function() {
             const email = document.getElementById('emailInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
@@ -430,56 +436,163 @@
                     if (!nick) return alert("Escolha um Nick para se identificar no chat!");
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     await updateProfile(userCredential.user, { displayName: nick });
-                    alert("Conta criada com sucesso!");
+                    alert("Conta criada!");
                 } else {
                     await signInWithEmailAndPassword(auth, email, password);
                 }
-            } catch (error) {
-                alert("Erro na autenticação: " + error.message);
-            }
+            } catch (error) { alert("Erro: " + error.message); }
         }
 
-        // Monitor de Login/Logout
+        // Observador de Sessão
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUserData = user;
                 document.getElementById('myDisplayNick').innerText = user.displayName || "Sem Nick";
-                
                 authScreen.classList.add('hidden');
                 chatScreen.classList.add('visible');
                 
-                startChatListener();
+                renderSidebarRooms();
+                switchRoom('geral');
+                checkMobileView();
             } else {
                 authScreen.classList.remove('hidden');
                 chatScreen.classList.remove('visible');
             }
         });
 
-        // Enviar Mensagem para o Firestore
+        // Adicionar / Criar Sala Privada localmente por código
+        window.joinPrivateRoom = function() {
+            const codeInput = document.getElementById('roomCodeInput');
+            const code = codeInput.value.trim().toLowerCase();
+
+            if (!code) return alert("Digite um código de sala válido!");
+            if (code === 'geral') return alert("Esse código é reservado pelo sistema!");
+
+            if (!joinedPrivateRooms.includes(code)) {
+                joinedPrivateRooms.push(code);
+                localStorage.setItem('talkr_rooms', JSON.stringify(joinedPrivateRooms));
+                renderSidebarRooms();
+            }
+            codeInput.value = '';
+            switchRoom(code);
+        }
+
+        // Renderiza as salas salvas na barra lateral
+        function renderSidebarRooms() {
+            const listContainer = document.getElementById('roomsList');
+            // Mantém sempre a Sala Geral estática no topo
+            listContainer.innerHTML = `
+                <div class="chat-item ${activeRoomId === 'geral' ? 'active' : ''}" id="item-geral" onclick="switchRoom('geral')">
+                    <img src="https://picsum.photos/40/40?random=99" class="avatar" alt="Geral">
+                    <div class="chat-info">
+                        <h4>Sala Geral</h4>
+                        <p>Chat público global</p>
+                    </div>
+                </div>
+            `;
+
+            // Adiciona as salas privadas que o usuário salvou
+            joinedPrivateRooms.forEach(roomCode => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `chat-item ${activeRoomId === roomCode ? 'active' : ''}`;
+                itemDiv.id = `item-${roomCode}`;
+                itemDiv.onclick = () => switchRoom(roomCode);
+
+                itemDiv.innerHTML = `
+                    <img src="https://picsum.photos/40/40?sig=${roomCode}" class="avatar" alt="Sala">
+                    <div class="chat-info">
+                        <h4>🔒 Sala: ${roomCode}</h4>
+                        <p>Código exclusivo ativo</p>
+                    </div>
+                `;
+                listContainer.appendChild(itemDiv);
+            });
+        }
+
+        // Troca de sala ativamente
+        window.switchRoom = function(roomId) {
+            activeRoomId = roomId;
+            
+            // Gerencia classes ativas na barra lateral
+            document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+            const currentItem = document.getElementById(`item-${roomId}`);
+            if (currentItem) currentItem.classList.add('active');
+
+            // Atualiza o Cabeçalho do Chat correspondente
+            const titleEl = document.getElementById('currentRoomTitle');
+            const subEl = document.getElementById('currentRoomSubtitle');
+            const avatarEl = document.getElementById('currentRoomAvatar');
+
+            if (roomId === 'geral') {
+                titleEl.innerText = "Sala Geral";
+                subEl.innerText = "Chat público global";
+                avatarEl.src = "https://picsum.photos/40/40?random=99";
+            } else {
+                titleEl.innerText = `Sala: ${roomId}`;
+                subEl.innerText = `Privada • Compartilhe o código "${roomId}" para convidar`;
+                avatarEl.src = `https://picsum.photos/40/40?sig=${roomId}`;
+            }
+
+            // Trata responsividade mobile
+            if (window.innerWidth <= 768) {
+                chatScreen.classList.add('chat-active');
+            }
+
+            // Inicia o leitor de mensagens focado na sala ativa
+            startChatListener(roomId);
+        }
+
+        // Voltar para a lista no mobile
+        window.backToSidebar = function() {
+            chatScreen.classList.remove('chat-active');
+        }
+
+        function checkMobileView() {
+            const btnBack = document.getElementById('btnBack');
+            if (window.innerWidth <= 768) {
+                btnBack.style.display = "block";
+            } else {
+                btnBack.style.display = "none";
+            }
+        }
+        window.addEventListener('resize', checkMobileView);
+
+        // Enviar Mensagem respeitando a Sala Ativa
         async function sendMessage() {
             const messageInput = document.getElementById('messageInput');
             const text = messageInput.value.trim();
             if (text === '' || !currentUserData) return;
 
             try {
-                await addDoc(collection(db, "messages"), {
+                // Objeto base enviado
+                const messageData = {
                     userId: currentUserData.uid,
                     text: text,
-                    nick: currentUserData.displayName || "Anônimo", 
+                    nick: currentUserData.displayName || "Usuário", // O Nick é sempre explícito (Sem anônimo!)
+                    roomId: activeRoomId,
                     timestamp: serverTimestamp()
-                });
+                };
+
+                await addDoc(collection(db, "messages"), messageData);
                 messageInput.value = '';
-            } catch (error) {
-                console.error("Erro ao enviar:", error);
-            }
+            } catch (error) { console.error("Erro ao enviar:", error); }
         }
 
-        // Escuta em tempo real obedecendo suas novas regras de segurança
-        function startChatListener() {
-            const chatMessages = document.getElementById('chatMessages');
-            const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
+        // Escutador em tempo real filtrado por sala
+        function startChatListener(roomId) {
+            // Se já existia um escutador de outra sala rodando, desativa ele primeiro
+            if (activeSnapshotUnsubscribe) activeSnapshotUnsubscribe();
 
-            onSnapshot(q, (snapshot) => {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // FILTRO ESSENCIAL: Onde o roomId for igual ao da sala aberta
+            const q = query(
+                collection(db, "messages"), 
+                where("roomId", "==", roomId),
+                orderBy("timestamp", "asc")
+            );
+
+            activeSnapshotUnsubscribe = onSnapshot(q, (snapshot) => {
                 chatMessages.innerHTML = '';
                 snapshot.forEach((doc) => {
                     const data = doc.data();
@@ -494,7 +607,8 @@
                     const messageDiv = document.createElement('div');
                     messageDiv.className = `message ${messageClass}`;
                     
-                    const nameTag = isMe ? '' : `<span class="msg-userId">${data.nick || 'Usuário'}</span>`;
+                    // Exibe o apelido real de quem enviou obrigatoriamente
+                    const nameTag = isMe ? '' : `<span class="msg-userId">${data.nick || 'Membro'}</span>`;
                     
                     messageDiv.innerHTML = `
                         ${nameTag}
@@ -507,7 +621,6 @@
             });
         }
 
-        // Captura de eventos de clique e teclado
         document.getElementById('btnSend').addEventListener('click', sendMessage);
         document.getElementById('messageInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
