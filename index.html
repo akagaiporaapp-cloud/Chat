@@ -375,7 +375,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
-            getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where 
+            getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, where 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { 
             getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged 
@@ -398,7 +398,8 @@
         let currentUserData = null;
         let activeRoomId = 'geral'; 
         let activeSnapshotUnsubscribe = null; 
-        let joinedPrivateRooms = JSON.parse(localStorage.getItem('talkr_rooms')) || []; 
+        let sidebarRoomsUnsubscribe = null; // Limpa o leitor de salas ao deslogar
+        let localJoinedRoomsList = []; // Array na memória com os códigos de salas vindos do Firebase
 
         const authScreen = document.getElementById('authScreen');
         const chatScreen = document.getElementById('chatScreen');
@@ -447,29 +448,65 @@
                 authScreen.classList.add('hidden');
                 chatScreen.classList.add('visible');
                 
-                renderSidebarRooms();
+                // Começa a escutar as salas privadas deste usuário direto do Firebase
+                startSidebarRoomsListener();
                 switchRoom('geral');
                 checkMobileView();
             } else {
                 authScreen.classList.remove('hidden');
                 chatScreen.classList.remove('visible');
+                if (sidebarRoomsUnsubscribe) sidebarRoomsUnsubscribe();
+                if (activeSnapshotUnsubscribe) activeSnapshotUnsubscribe();
             }
         });
 
-        window.joinPrivateRoom = function() {
+        // SALVA A SALA NO CLOUD FIRESTORE EM VEZ DO LOCALSTORAGE
+        window.joinPrivateRoom = async function() {
             const codeInput = document.getElementById('roomCodeInput');
             const code = codeInput.value.trim().toLowerCase();
 
             if (!code) return alert("Digite um código de sala válido!");
-            if (code === 'geral') return alert("Esse código é reservado pelo sistema!");
+            if (code === 'geral') return alert("Esse código é reservado!");
 
-            if (!joinedPrivateRooms.includes(code)) {
-                joinedPrivateRooms.push(code);
-                localStorage.setItem('talkr_rooms', JSON.stringify(joinedPrivateRooms));
-                renderSidebarRooms();
+            // Verifica se você já não está vinculado a ela localmente para evitar duplicar itens
+            if (localJoinedRoomsList.includes(code)) {
+                switchRoom(code);
+                codeInput.value = '';
+                return;
             }
-            codeInput.value = '';
-            switchRoom(code);
+
+            try {
+                // Grava a relação do usuário com a sala na coleção "user_rooms"
+                await addDoc(collection(db, "user_rooms"), {
+                    userId: currentUserData.uid,
+                    roomCode: code
+                });
+                
+                codeInput.value = '';
+                switchRoom(code);
+            } catch (error) {
+                console.error("Erro ao vincular sala no Firebase:", error);
+            }
+        }
+
+        // MONITORA EM TEMPO REAL AS SALAS VINCULADAS AO USUÁRIO LOGADO
+        function startSidebarRoomsListener() {
+            if (sidebarRoomsUnsubscribe) sidebarRoomsUnsubscribe();
+
+            const q = query(
+                collection(db, "user_rooms"),
+                where("userId", "==", currentUserData.uid)
+            );
+
+            sidebarRoomsUnsubscribe = onSnapshot(q, (snapshot) => {
+                localJoinedRoomsList = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.roomCode) localJoinedRoomsList.push(data.roomCode);
+                });
+                
+                renderSidebarRooms();
+            });
         }
 
         function renderSidebarRooms() {
@@ -484,7 +521,7 @@
                 </div>
             `;
 
-            joinedPrivateRooms.forEach(roomCode => {
+            localJoinedRoomsList.forEach(roomCode => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = `chat-item ${activeRoomId === roomCode ? 'active' : ''}`;
                 itemDiv.id = `item-${roomCode}`;
@@ -562,13 +599,11 @@
             } catch (error) { console.error("Erro ao enviar:", error); }
         }
 
-        // FUNÇÃO ATUALIZADA: Filtra por sala sem quebrar e ordena direto no front-end
         function startChatListener(roomId) {
             if (activeSnapshotUnsubscribe) activeSnapshotUnsubscribe();
 
             const chatMessages = document.getElementById('chatMessages');
             
-            // Busca filtrando estritamente pela sala ativa (Sem ordenar aqui para evitar erro de índice)
             const q = query(
                 collection(db, "messages"), 
                 where("roomId", "==", roomId)
@@ -577,11 +612,9 @@
             activeSnapshotUnsubscribe = onSnapshot(q, (snapshot) => {
                 chatMessages.innerHTML = '';
                 
-                // Agrupa as mensagens locais
                 const docsArray = [];
                 snapshot.forEach(doc => docsArray.push(doc.data()));
                 
-                // Ordena por data/horário local
                 docsArray.sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
 
                 docsArray.forEach((data) => {
