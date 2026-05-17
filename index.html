@@ -284,7 +284,6 @@
         }
 
         @media (max-width: 768px) {
-            /* No mobile, se o chat estiver aberto, esconde a sidebar */
             .app-container.chat-active .sidebar { display: none; }
             .app-container:not(.chat-active) .chat-window { display: none; }
             .sidebar { width: 100%; max-width: none; }
@@ -349,7 +348,7 @@
                         <p>Chat público global</p>
                     </div>
                 </div>
-                </div>
+            </div>
         </aside>
 
         <main class="chat-window">
@@ -397,14 +396,13 @@
 
         let isSignUpMode = true; 
         let currentUserData = null;
-        let activeRoomId = 'geral'; // Controla qual sala está na tela
-        let activeSnapshotUnsubscribe = null; // Limpa o escutador antigo ao mudar de sala
-        let joinedPrivateRooms = JSON.parse(localStorage.getItem('talkr_rooms')) || []; // Salva as salas locais que você entrou
+        let activeRoomId = 'geral'; 
+        let activeSnapshotUnsubscribe = null; 
+        let joinedPrivateRooms = JSON.parse(localStorage.getItem('talkr_rooms')) || []; 
 
         const authScreen = document.getElementById('authScreen');
         const chatScreen = document.getElementById('chatScreen');
 
-        // Alternar visualização Auth
         window.toggleAuthMode = function(e) {
             e.preventDefault();
             isSignUpMode = !isSignUpMode;
@@ -423,7 +421,6 @@
             }
         }
 
-        // Handle Login/Cadastro
         window.handleAuth = async function() {
             const email = document.getElementById('emailInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
@@ -443,7 +440,6 @@
             } catch (error) { alert("Erro: " + error.message); }
         }
 
-        // Observador de Sessão
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUserData = user;
@@ -460,7 +456,6 @@
             }
         });
 
-        // Adicionar / Criar Sala Privada localmente por código
         window.joinPrivateRoom = function() {
             const codeInput = document.getElementById('roomCodeInput');
             const code = codeInput.value.trim().toLowerCase();
@@ -477,10 +472,8 @@
             switchRoom(code);
         }
 
-        // Renderiza as salas salvas na barra lateral
         function renderSidebarRooms() {
             const listContainer = document.getElementById('roomsList');
-            // Mantém sempre a Sala Geral estática no topo
             listContainer.innerHTML = `
                 <div class="chat-item ${activeRoomId === 'geral' ? 'active' : ''}" id="item-geral" onclick="switchRoom('geral')">
                     <img src="https://picsum.photos/40/40?random=99" class="avatar" alt="Geral">
@@ -491,7 +484,6 @@
                 </div>
             `;
 
-            // Adiciona as salas privadas que o usuário salvou
             joinedPrivateRooms.forEach(roomCode => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = `chat-item ${activeRoomId === roomCode ? 'active' : ''}`;
@@ -509,16 +501,13 @@
             });
         }
 
-        // Troca de sala ativamente
         window.switchRoom = function(roomId) {
             activeRoomId = roomId;
             
-            // Gerencia classes ativas na barra lateral
             document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
             const currentItem = document.getElementById(`item-${roomId}`);
             if (currentItem) currentItem.classList.add('active');
 
-            // Atualiza o Cabeçalho do Chat correspondente
             const titleEl = document.getElementById('currentRoomTitle');
             const subEl = document.getElementById('currentRoomSubtitle');
             const avatarEl = document.getElementById('currentRoomAvatar');
@@ -533,16 +522,13 @@
                 avatarEl.src = `https://picsum.photos/40/40?sig=${roomId}`;
             }
 
-            // Trata responsividade mobile
             if (window.innerWidth <= 768) {
                 chatScreen.classList.add('chat-active');
             }
 
-            // Inicia o leitor de mensagens focado na sala ativa
             startChatListener(roomId);
         }
 
-        // Voltar para a lista no mobile
         window.backToSidebar = function() {
             chatScreen.classList.remove('chat-active');
         }
@@ -557,18 +543,16 @@
         }
         window.addEventListener('resize', checkMobileView);
 
-        // Enviar Mensagem respeitando a Sala Ativa
         async function sendMessage() {
             const messageInput = document.getElementById('messageInput');
             const text = messageInput.value.trim();
             if (text === '' || !currentUserData) return;
 
             try {
-                // Objeto base enviado
                 const messageData = {
                     userId: currentUserData.uid,
                     text: text,
-                    nick: currentUserData.displayName || "Usuário", // O Nick é sempre explícito (Sem anônimo!)
+                    nick: currentUserData.displayName || "Usuário", 
                     roomId: activeRoomId,
                     timestamp: serverTimestamp()
                 };
@@ -578,36 +562,38 @@
             } catch (error) { console.error("Erro ao enviar:", error); }
         }
 
-        // Escutador em tempo real filtrado por sala
+        // FUNÇÃO ATUALIZADA: Filtra por sala sem quebrar e ordena direto no front-end
         function startChatListener(roomId) {
-            // Se já existia um escutador de outra sala rodando, desativa ele primeiro
             if (activeSnapshotUnsubscribe) activeSnapshotUnsubscribe();
 
             const chatMessages = document.getElementById('chatMessages');
             
-            // FILTRO ESSENCIAL: Onde o roomId for igual ao da sala aberta
+            // Busca filtrando estritamente pela sala ativa (Sem ordenar aqui para evitar erro de índice)
             const q = query(
                 collection(db, "messages"), 
-                where("roomId", "==", roomId),
-                orderBy("timestamp", "asc")
+                where("roomId", "==", roomId)
             );
 
             activeSnapshotUnsubscribe = onSnapshot(q, (snapshot) => {
                 chatMessages.innerHTML = '';
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (!data.timestamp) return;
+                
+                // Agrupa as mensagens locais
+                const docsArray = [];
+                snapshot.forEach(doc => docsArray.push(doc.data()));
+                
+                // Ordena por data/horário local
+                docsArray.sort((a, b) => (a.timestamp?.toDate() || 0) - (b.timestamp?.toDate() || 0));
 
+                docsArray.forEach((data) => {
                     const isMe = data.userId === currentUserData.uid;
                     const messageClass = isMe ? 'sent' : 'received';
 
-                    const date = data.timestamp.toDate();
+                    const date = data.timestamp ? data.timestamp.toDate() : new Date();
                     const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
                     const messageDiv = document.createElement('div');
                     messageDiv.className = `message ${messageClass}`;
                     
-                    // Exibe o apelido real de quem enviou obrigatoriamente
                     const nameTag = isMe ? '' : `<span class="msg-userId">${data.nick || 'Membro'}</span>`;
                     
                     messageDiv.innerHTML = `
