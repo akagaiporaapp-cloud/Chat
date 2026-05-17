@@ -375,7 +375,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
-            getFirestore, collection, doc, setDoc, query, onSnapshot, serverTimestamp, where 
+            getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, where 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { 
             getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged 
@@ -460,7 +460,7 @@
             }
         });
 
-        // CORREÇÃO CRÍTICA: Usa setDoc com ID único combinado para cravar a sala no seu perfil
+        // SOLUÇÃO: Voltamos ao addDoc compatível com a regra e barramos duplicados na hora do clique
         window.joinPrivateRoom = async function() {
             const codeInput = document.getElementById('roomCodeInput');
             const code = codeInput.value.trim().toLowerCase();
@@ -468,11 +468,16 @@
             if (!code) return alert("Digite um código de sala válido!");
             if (code === 'geral') return alert("Esse código é reservado!");
 
+            // Se você já tem essa sala listada na memória, só navega para ela e não salva de novo
+            if (localJoinedRoomsList.includes(code)) {
+                switchRoom(code);
+                codeInput.value = '';
+                return;
+            }
+
             try {
-                // Cria um identificador único para que essa sala pertença a você de forma fixa
-                const docUniqueKey = `${currentUserData.uid}_${code}`;
-                
-                await setDoc(doc(db, "user_rooms", docUniqueKey), {
+                // Salva usando o método padrão aceito pelas regras de segurança
+                await addDoc(collection(db, "user_rooms"), {
                     userId: currentUserData.uid,
                     roomCode: code
                 });
@@ -508,7 +513,6 @@
         function renderSidebarRooms() {
             const listContainer = document.getElementById('roomsList');
             
-            // Mantém a estrutura limpa e reconstrói mantendo os estados ativos corretos
             listContainer.innerHTML = `
                 <div class="chat-item ${activeRoomId === 'geral' ? 'active' : ''}" id="item-geral" onclick="switchRoom('geral')">
                     <img src="https://picsum.photos/40/40?random=99" class="avatar" alt="Geral">
@@ -539,10 +543,9 @@
         window.switchRoom = function(roomId) {
             activeRoomId = roomId;
             
-            // Corrige a marcação visual da barra lateral antes de carregar as mensagens
             document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
             
-            // Aguarda um milissegundo para o elemento renderizar e marca como ativo
+            // Pequeno atraso para garantir o sincronismo visual do clique entre as abas
             setTimeout(() => {
                 const currentItem = document.getElementById(`item-${roomId}`);
                 if (currentItem) currentItem.classList.add('active');
@@ -597,7 +600,7 @@
                     timestamp: serverTimestamp()
                 };
 
-                await setDoc(doc(collection(db, "messages")), messageData);
+                await addDoc(collection(db, "messages"), messageData);
                 messageInput.value = '';
             } catch (error) { console.error("Erro ao enviar:", error); }
         }
