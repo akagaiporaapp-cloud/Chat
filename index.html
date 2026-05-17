@@ -398,8 +398,8 @@
         let currentUserData = null;
         let activeRoomId = 'geral'; 
         let activeSnapshotUnsubscribe = null; 
-        let sidebarRoomsUnsubscribe = null; // Limpa o leitor de salas ao deslogar
-        let localJoinedRoomsList = []; // Array na memória com os códigos de salas vindos do Firebase
+        let sidebarRoomsUnsubscribe = null; 
+        let localJoinedRoomsList = []; 
 
         const authScreen = document.getElementById('authScreen');
         const chatScreen = document.getElementById('chatScreen');
@@ -445,11 +445,13 @@
             if (user) {
                 currentUserData = user;
                 document.getElementById('myDisplayNick').innerText = user.displayName || "Sem Nick";
+                
+                // FLUXO CORRIGIDO: Ativa o monitor de salas ANTES de exibir o chat na tela
+                startSidebarRoomsListener();
+                
                 authScreen.classList.add('hidden');
                 chatScreen.classList.add('visible');
                 
-                // Começa a escutar as salas privadas deste usuário direto do Firebase
-                startSidebarRoomsListener();
                 switchRoom('geral');
                 checkMobileView();
             } else {
@@ -460,7 +462,6 @@
             }
         });
 
-        // SALVA A SALA NO CLOUD FIRESTORE EM VEZ DO LOCALSTORAGE
         window.joinPrivateRoom = async function() {
             const codeInput = document.getElementById('roomCodeInput');
             const code = codeInput.value.trim().toLowerCase();
@@ -468,7 +469,6 @@
             if (!code) return alert("Digite um código de sala válido!");
             if (code === 'geral') return alert("Esse código é reservado!");
 
-            // Verifica se você já não está vinculado a ela localmente para evitar duplicar itens
             if (localJoinedRoomsList.includes(code)) {
                 switchRoom(code);
                 codeInput.value = '';
@@ -476,7 +476,6 @@
             }
 
             try {
-                // Grava a relação do usuário com a sala na coleção "user_rooms"
                 await addDoc(collection(db, "user_rooms"), {
                     userId: currentUserData.uid,
                     roomCode: code
@@ -489,7 +488,6 @@
             }
         }
 
-        // MONITORA EM TEMPO REAL AS SALAS VINCULADAS AO USUÁRIO LOGADO
         function startSidebarRoomsListener() {
             if (sidebarRoomsUnsubscribe) sidebarRoomsUnsubscribe();
 
@@ -498,6 +496,7 @@
                 where("userId", "==", currentUserData.uid)
             );
 
+            // Escuta em tempo real. Qualquer mudança ou recarga vai puxar os dados na hora
             sidebarRoomsUnsubscribe = onSnapshot(q, (snapshot) => {
                 localJoinedRoomsList = [];
                 snapshot.forEach(doc => {
@@ -506,6 +505,8 @@
                 });
                 
                 renderSidebarRooms();
+            }, (error) => {
+                console.error("Erro no escutador de salas:", error);
             });
         }
 
