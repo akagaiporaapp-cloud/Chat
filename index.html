@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Clone - Autenticação</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WhatsApp Clone - Full Screen</title>
     <style>
         * {
             margin: 0;
@@ -12,170 +12,178 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        body {
+        /* Full Screen Real: Ocupa toda a tela do dispositivo sem rolar o fundo */
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             background-color: #d1d7db;
-            height: 100vh;
+        }
+
+        body {
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
         }
 
         /* --- TELA DE LOGIN --- */
         .auth-container {
-            width: 450px;
+            width: 100%;
+            max-width: 450px;
             background-color: #fff;
-            padding: 40px;
+            padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             text-align: center;
-            border-top: 10px solid #00a884; /* Verde clássico do Whats */
+            border-top: 10px solid #00a884;
             z-index: 10;
-            transition: all 0.5s ease;
+            transition: all 0.3s ease;
+            margin: 20px;
         }
 
         .auth-container.hidden {
-            opacity: 0;
-            transform: scale(0.9);
-            pointer-events: none;
-            position: absolute;
+            display: none;
         }
 
-        .auth-logo {
-            font-size: 50px;
-            margin-bottom: 10px;
-        }
+        .auth-logo { font-size: 50px; margin-bottom: 10px; }
+        .auth-container h2 { color: #111b21; margin-bottom: 8px; font-size: 24px; font-weight: 500; }
+        .auth-container p { color: #667781; font-size: 14px; margin-bottom: 25px; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; font-size: 13px; color: #00a884; font-weight: 600; margin-bottom: 6px; }
+        .input-group input { width: 100%; height: 45px; padding: 0 12px; border: 1px solid #e9edef; border-radius: 8px; outline: none; font-size: 15px; background-color: #f0f2f5; }
+        .input-group input:focus { border-color: #00a884; background-color: #fff; }
+        .auth-btn { width: 100%; height: 45px; background-color: #00a884; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .auth-btn:hover { background-color: #008f72; }
+        .toggle-auth { margin-top: 20px; font-size: 14px; color: #667781; }
+        .toggle-auth a { color: #00a884; text-decoration: none; font-weight: 600; }
 
-        .auth-container h2 {
-            color: #111b21;
-            margin-bottom: 8px;
-            font-size: 24px;
-            font-weight: 500;
-        }
-
-        .auth-container p {
-            color: #667781;
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 13px;
-            color: #00a884;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .input-group input {
-            width: 100%;
-            height: 45px;
-            padding: 0 12px;
-            border: 1px solid #e9edef;
-            border-radius: 8px;
-            outline: none;
-            font-size: 15px;
-            background-color: #f0f2f5;
-            transition: border-color 0.2s;
-        }
-
-        .input-group input:focus {
-            border-color: #00a884;
-            background-color: #fff;
-        }
-
-        .auth-btn {
-            width: 100%;
-            height: 45px;
-            background-color: #00a884;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            margin-top: 10px;
-        }
-
-        .auth-btn:hover {
-            background-color: #008f72;
-        }
-
-        .toggle-auth {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #667781;
-        }
-
-        .toggle-auth a {
-            color: #00a884;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .toggle-auth a:hover {
-            text-decoration: underline;
-        }
-
-
-        /* --- INTERFACE DO CHAT (Inicia oculta) --- */
+        /* --- INTERFACE DO CHAT (Ajustada para Full Screen e Responsiva) --- */
         .app-container {
-            display: flex;
-            width: 1396px;
-            max-width: 100%;
-            height: 95vh;
+            display: none; /* Inicia oculto, controlado pelo JS */
+            width: 100%;
+            height: 100%; /* Ocupa tudo no celular */
             background-color: #fff;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-            opacity: 0;
-            transform: scale(1.05);
-            transition: all 0.5s ease;
-            position: absolute;
-            pointer-events: none;
         }
 
         .app-container.visible {
-            opacity: 1;
-            transform: scale(1);
-            position: relative;
-            pointer-events: auto;
+            display: flex;
         }
 
-        /* Estilos do Chat (Mantidos do passo anterior) */
-        .sidebar { width: 35%; min-width: 340px; border-right: 1px solid #e9edef; display: flex; flex-direction: column; background-color: #fff; }
-        .header { height: 60px; background-color: #f0f2f5; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+        /* Barra Lateral esquerda */
+        .sidebar {
+            width: 30%;
+            min-width: 300px;
+            max-width: 400px;
+            border-right: 1px solid #e9edef;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+        }
+
+        .header {
+            height: 60px;
+            min-height: 60px;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
         .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #ccc; object-fit: cover; }
         .chat-list { flex: 1; overflow-y: auto; }
         .chat-item { display: flex; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f0f2f5; align-items: center; background-color: #ebebeb; }
         .chat-info { flex: 1; margin-left: 15px; }
         .chat-info-header h4 { font-size: 16px; color: #111b21; font-weight: 500; }
-        .chat-window { flex: 1; display: flex; flex-direction: column; background-color: #efeae2; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; }
-        .chat-messages { flex: 1; padding: 20px 5%; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .message { max-width: 65%; padding: 8px 12px; border-radius: 8px; font-size: 14.2px; position: relative; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); word-wrap: break-word; }
+
+        /* Janela do Chat Direita */
+        .chat-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #efeae2;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-blend-mode: overlay;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Área de Mensagens com rolagem interna perfeita */
+        .chat-messages {
+            flex: 1;
+            padding: 20px 5%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 14.2px; position: relative; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); word-wrap: break-word; }
         .message.received { background-color: #fff; align-self: flex-start; border-top-left-radius: 0; }
         .message.sent { background-color: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
         .msg-userId { font-size: 11px; color: #00a884; font-weight: bold; display: block; margin-bottom: 2px; }
         .msg-time { font-size: 11px; color: #667781; text-align: right; margin-top: 4px; display: block; }
-        .chat-input-area { height: 62px; background-color: #f0f2f5; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
-        .chat-input-area input { flex: 1; height: 42px; border: none; border-radius: 8px; padding: 0 12px; outline: none; font-size: 15px; }
+
+        /* Barra de Input de Mensagem - SEMPRE VISÍVEL NO RODAPÉ */
+        .chat-input-area {
+            height: 62px;
+            min-height: 62px;
+            background-color: #f0f2f5;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid #e9edef;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            height: 42px;
+            border: none;
+            border-radius: 8px;
+            padding: 0 12px;
+            outline: none;
+            font-size: 15px;
+        }
+
         .btn-send { background: none; border: none; cursor: pointer; color: #54656f; font-size: 20px; padding: 8px; }
-        @media (max-width: 768px) { .sidebar { display: none; } .app-container { height: 100vh; } }
+
+        /* --- RESPONSIVIDADE PARA COMPUTADORES (Telas Grandes) --- */
+        @media (min-width: 769px) {
+            body {
+                background-color: #d1d7db; /* Volta o fundo cinza do Whats Web */
+            }
+            .app-container {
+                width: 95%;
+                max-width: 1396px;
+                height: 95vh; /* Formato de janela centralizada no PC */
+                border-radius: 3px;
+                box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+            }
+        }
+
+        /* --- RESPONSIVIDADE PARA CELULAR (Telas Pequenas) --- */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none; /* Esconde a barra lateral para dar espaço total ao chat */
+            }
+            .auth-container {
+                margin: 15px;
+                padding: 20px;
+            }
+            .message {
+                max-width: 85%; /* Balão um pouco mais largo no celular */
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- ================= TELA DE LOGIN / CADASTRO ================= -->
     <div class="auth-container" id="authScreen">
         <div class="auth-logo">💬</div>
         <h2 id="authTitle">Criar uma Conta</h2>
         <p id="authSubtitle">Insira seus dados para começar a conversar</p>
 
-        <!-- Campo de Nickname (Opcional no Login, Obrigatório no Cadastro) -->
         <div class="input-group" id="nickGroup">
             <label for="nickInput">NICK / APELIDO</label>
             <input type="text" id="nickInput" placeholder="Como quer ser chamado no chat?">
@@ -200,11 +208,9 @@
     </div>
 
 
-    <!-- ================= INTERFACE DO CHAT ================= -->
     <div class="app-container" id="chatScreen">
         <aside class="sidebar">
             <div class="header">
-                <!-- Foto do perfil logado -->
                 <img src="https://picsum.photos/40/40?random=1" alt="Meu Perfil" class="avatar">
                 <span id="myDisplayNick" style="font-weight: 600; color: #54656f; font-size: 14px;">Nick</span>
             </div>
@@ -240,18 +246,15 @@
         </main>
     </div>
 
-    <!-- ================= SCRIPTS (FIREBASE E LÓGICA) ================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
             getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        // IMPORTAÇÃO DO AUTH DO FIREBASE
         import { 
             getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // Configuração do seu Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyA5EOG4RmeobQtlkvaurl1wCfKq-SXqxic",
             authDomain: "chat-27707.firebaseapp.com",
@@ -265,15 +268,12 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Estado da tela (Cadastro ou Login)
         let isSignUpMode = true; 
         let currentUserData = null;
 
-        // Elementos globais de controle de tela
         const authScreen = document.getElementById('authScreen');
         const chatScreen = document.getElementById('chatScreen');
 
-        // Alternar visualmente entre Login e Cadastro
         window.toggleAuthMode = function(e) {
             e.preventDefault();
             isSignUpMode = !isSignUpMode;
@@ -299,7 +299,6 @@
             }
         }
 
-        // Executa a Autenticação (Ação do Botão Principal)
         window.handleAuth = async function() {
             const email = document.getElementById('emailInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
@@ -310,16 +309,10 @@
             try {
                 if (isSignUpMode) {
                     if (!nick) return alert("Escolha um Nick para se identificar no chat!");
-                    
-                    // 1. Cria o usuário no Firebase Auth
                     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    
-                    // 2. Salva o Nick no perfil do Firebase Auth (displayName)
                     await updateProfile(userCredential.user, { displayName: nick });
-                    
                     alert("Conta criada com sucesso!");
                 } else {
-                    // Realiza o Login tradicional
                     await signInWithEmailAndPassword(auth, email, password);
                 }
             } catch (error) {
@@ -327,18 +320,14 @@
             }
         }
 
-        // --- MONITORADOR DE ESTADO DE AUTENTICAÇÃO ---
-        // Verifica se o usuário está logado. Se sim, altera a tela automaticamente.
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUserData = user;
                 document.getElementById('myDisplayNick').innerText = user.displayName || "Sem Nick";
                 
-                // Transição de telas
                 authScreen.classList.add('hidden');
                 chatScreen.classList.add('visible');
                 
-                // Inicializa o recebimento de mensagens
                 startChatListener();
             } else {
                 authScreen.classList.remove('hidden');
@@ -346,7 +335,6 @@
             }
         });
 
-        // --- LÓGICA DO ENVIO DE MENSAGEM ---
         async function sendMessage() {
             const messageInput = document.getElementById('messageInput');
             const text = messageInput.value.trim();
@@ -356,7 +344,6 @@
                 await addDoc(collection(db, "messages"), {
                     userId: currentUserData.uid,
                     text: text,
-                    // Enviamos o displayName (Nick) fixado no banco para exibir no balão dos outros usuários
                     nick: currentUserData.displayName || "Anônimo", 
                     timestamp: serverTimestamp()
                 });
@@ -366,7 +353,6 @@
             }
         }
 
-        // --- ESCUTAR CHAT EM TEMPO REAL ---
         function startChatListener() {
             const chatMessages = document.getElementById('chatMessages');
             const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
@@ -386,7 +372,6 @@
                     const messageDiv = document.createElement('div');
                     messageDiv.className = `message ${messageClass}`;
                     
-                    // Exibe o Nick de quem enviou caso seja outra pessoa
                     const nameTag = isMe ? '' : `<span class="msg-userId">${data.nick || 'Usuário'}</span>`;
                     
                     messageDiv.innerHTML = `
@@ -400,7 +385,6 @@
             });
         }
 
-        // Ativação dos botões da interface de conversa
         document.getElementById('btnSend').addEventListener('click', sendMessage);
         document.getElementById('messageInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
