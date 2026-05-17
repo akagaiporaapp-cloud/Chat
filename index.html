@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Talkr — Mensagens em Tempo Real</title>
     <style>
         * {
@@ -12,9 +12,11 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        /* Ajuste crítico para evitar que o teclado ou botões do sistema joguem o app para baixo */
         html, body {
             width: 100%;
             height: 100%;
+            height: -webkit-fill-available; /* Força o tamanho correto no iOS/Android Safari/Chrome */
             overflow: hidden;
             background-color: #d1d7db;
         }
@@ -248,11 +250,13 @@
             display: block;
         }
 
+        /* CORREÇÃO DO CAMPO DE DIGITAÇÃO: safe-area impede que os botões fiquem por cima */
         .chat-input-area {
-            height: 62px;
             min-height: 62px;
             background-color: #f0f2f5;
             padding: 10px 16px;
+            /* Adiciona um preenchimento extra embaixo se o celular tiver barra de navegação virtual */
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); 
             display: flex;
             align-items: center;
             gap: 12px;
@@ -472,7 +476,15 @@
         const chatScreen = document.getElementById('chatScreen');
         const helpModal = document.getElementById('helpModal');
 
-        // Abre ou fecha o Modal de Ajuda
+        // Impede que o scroll do teclado quebre o layout no Android
+        if (/Android/i.test(navigator.userAgent)) {
+            window.addEventListener('resize', () => {
+                if (document.activeElement.tagName === 'INPUT') {
+                    document.activeElement.scrollIntoView({ block: 'nearest' });
+                }
+            });
+        }
+
         window.toggleHelpModal = function(show) {
             if (show) {
                 helpModal.classList.add('visible');
@@ -530,7 +542,6 @@
                 switchRoom('geral');
                 checkMobileView();
 
-                // UX: Exibe o pop-up de ajuda de forma automática para novos logins na sessão
                 if(!sessionStorage.getItem('talkr_help_shown')) {
                     toggleHelpModal(true);
                     sessionStorage.setItem('talkr_help_shown', 'true');
