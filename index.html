@@ -271,6 +271,49 @@
 
         .btn-send { background: none; border: none; cursor: pointer; color: #54656f; font-size: 20px; padding: 8px; }
 
+        /* --- MODAL DE AJUDA --- */
+        .help-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .help-modal.visible { display: flex; }
+        .help-content {
+            background-color: #fff;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease;
+        }
+        .help-content h3 { color: #111b21; font-size: 20px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .help-steps { text-align: left; margin-bottom: 20px; }
+        .help-step { margin-bottom: 15px; font-size: 14px; color: #3b4a54; line-height: 1.5; }
+        .help-step strong { color: #00a884; }
+        .alert-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #664d03;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        .help-close-btn {
+            width: 100%; height: 40px; background-color: #00a884; color: white;
+            border: none; border-radius: 6px; font-weight: 600; cursor: pointer;
+        }
+        .help-close-btn:hover { background-color: #008f72; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
         /* --- CONFIGURAÇÃO DE TELAS --- */
         @media (min-width: 769px) {
             body { background-color: #d1d7db; }
@@ -332,7 +375,10 @@
                     <img src="https://picsum.photos/40/40?random=1" alt="Meu Perfil" class="avatar">
                     <span id="myDisplayNick" style="font-weight: 600; color: #111b21; font-size: 14px;">Nick</span>
                 </div>
-                <span style="font-size: 12px; font-weight: 700; color: #00a884; background: #e8faf4; padding: 3px 8px; border-radius: 20px;">Talkr App</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button onclick="toggleHelpModal(true)" style="background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px;" title="Ajuda">❓</button>
+                    <span style="font-size: 12px; font-weight: 700; color: #00a884; background: #e8faf4; padding: 3px 8px; border-radius: 20px;">Talkr App</span>
+                </div>
             </div>
 
             <div class="room-manager">
@@ -372,6 +418,27 @@
         </main>
     </div>
 
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <h3>💡 Guia Prático do Talkr</h3>
+            <div class="help-steps">
+                <div class="help-step">
+                    1. 🌐 <strong>Sala Geral:</strong> É a aba inicial padrão. Todas as pessoas registradas no aplicativo compartilham essa mesma sala pública em tempo real.
+                </div>
+                <div class="help-step">
+                    2. 🔒 <strong>Salas Privadas:</strong> Para falar apenas com pessoas específicas (como sua esposa ou amigos), invente e digite qualquer palavra secreta no campo superior esquerdo e clique no botão para entrar.
+                </div>
+                <div class="help-step">
+                    3. 👥 <strong>Como Convidar:</strong> Diga o código exato que você inventou para o seu contato. Quando a outra pessoa digitar o mesmo código no app dela, vocês estarão conectados no chat privado.
+                </div>
+                <div class="alert-box">
+                    ⚠️ <strong>ATENÇÃO:</strong> Guarde e anote bem o seu código de convite! O aplicativo não exibe salas públicas de outros usuários. Se você fechar o aplicativo ou deslogar, precisará digitar o código novamente para reabrir sua sala.
+                </div>
+            </div>
+            <button class="help-close-btn" onclick="toggleHelpModal(false)">Entendi, começar!</button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -403,6 +470,16 @@
 
         const authScreen = document.getElementById('authScreen');
         const chatScreen = document.getElementById('chatScreen');
+        const helpModal = document.getElementById('helpModal');
+
+        // Abre ou fecha o Modal de Ajuda
+        window.toggleHelpModal = function(show) {
+            if (show) {
+                helpModal.classList.add('visible');
+            } else {
+                helpModal.classList.remove('visible');
+            }
+        }
 
         window.toggleAuthMode = function(e) {
             e.preventDefault();
@@ -452,6 +529,12 @@
                 startSidebarRoomsListener();
                 switchRoom('geral');
                 checkMobileView();
+
+                // UX: Exibe o pop-up de ajuda de forma automática para novos logins na sessão
+                if(!sessionStorage.getItem('talkr_help_shown')) {
+                    toggleHelpModal(true);
+                    sessionStorage.setItem('talkr_help_shown', 'true');
+                }
             } else {
                 authScreen.classList.remove('hidden');
                 chatScreen.classList.remove('visible');
@@ -460,7 +543,6 @@
             }
         });
 
-        // SOLUÇÃO: Voltamos ao addDoc compatível com a regra e barramos duplicados na hora do clique
         window.joinPrivateRoom = async function() {
             const codeInput = document.getElementById('roomCodeInput');
             const code = codeInput.value.trim().toLowerCase();
@@ -468,7 +550,6 @@
             if (!code) return alert("Digite um código de sala válido!");
             if (code === 'geral') return alert("Esse código é reservado!");
 
-            // Se você já tem essa sala listada na memória, só navega para ela e não salva de novo
             if (localJoinedRoomsList.includes(code)) {
                 switchRoom(code);
                 codeInput.value = '';
@@ -476,7 +557,6 @@
             }
 
             try {
-                // Salva usando o método padrão aceito pelas regras de segurança
                 await addDoc(collection(db, "user_rooms"), {
                     userId: currentUserData.uid,
                     roomCode: code
@@ -545,7 +625,6 @@
             
             document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
             
-            // Pequeno atraso para garantir o sincronismo visual do clique entre as abas
             setTimeout(() => {
                 const currentItem = document.getElementById(`item-${roomId}`);
                 if (currentItem) currentItem.classList.add('active');
