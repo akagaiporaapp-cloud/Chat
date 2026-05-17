@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WhatsApp Clone - Full Screen</title>
+    <title>Talkr — Mensagens em Tempo Real</title>
     <style>
         * {
             margin: 0;
@@ -12,7 +12,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Full Screen Real: Ocupa toda a tela do dispositivo sem rolar o fundo */
+        /* Garante que o aplicativo ocupe a tela inteira sem rolar a página de fundo */
         html, body {
             width: 100%;
             height: 100%;
@@ -26,12 +26,12 @@
             align-items: center;
         }
 
-        /* --- TELA DE LOGIN --- */
+        /* --- TELA DE LOGIN / CADASTRO (TALKR) --- */
         .auth-container {
             width: 100%;
             max-width: 450px;
             background-color: #fff;
-            padding: 30px;
+            padding: 35px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             text-align: center;
@@ -45,23 +45,69 @@
             display: none;
         }
 
-        .auth-logo { font-size: 50px; margin-bottom: 10px; }
-        .auth-container h2 { color: #111b21; margin-bottom: 8px; font-size: 24px; font-weight: 500; }
-        .auth-container p { color: #667781; font-size: 14px; margin-bottom: 25px; }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; font-size: 13px; color: #00a884; font-weight: 600; margin-bottom: 6px; }
-        .input-group input { width: 100%; height: 45px; padding: 0 12px; border: 1px solid #e9edef; border-radius: 8px; outline: none; font-size: 15px; background-color: #f0f2f5; }
-        .input-group input:focus { border-color: #00a884; background-color: #fff; }
-        .auth-btn { width: 100%; height: 45px; background-color: #00a884; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; }
-        .auth-btn:hover { background-color: #008f72; }
-        .toggle-auth { margin-top: 20px; font-size: 14px; color: #667781; }
-        .toggle-auth a { color: #00a884; text-decoration: none; font-weight: 600; }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
 
-        /* --- INTERFACE DO CHAT (Ajustada para Full Screen e Responsiva) --- */
-        .app-container {
-            display: none; /* Inicia oculto, controlado pelo JS */
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            color: #00a884;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .input-group input {
             width: 100%;
-            height: 100%; /* Ocupa tudo no celular */
+            height: 45px;
+            padding: 0 12px;
+            border: 1px solid #e9edef;
+            border-radius: 8px;
+            outline: none;
+            font-size: 15px;
+            background-color: #f0f2f5;
+        }
+
+        .input-group input:focus {
+            border-color: #00a884;
+            background-color: #fff;
+        }
+
+        .auth-btn {
+            width: 100%;
+            height: 45px;
+            background-color: #00a884;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .auth-btn:hover {
+            background-color: #008f72;
+        }
+
+        .toggle-auth {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #667781;
+        }
+
+        .toggle-auth a {
+            color: #00a884;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* --- INTERFACE DO CHAT (TALKR APP) --- */
+        .app-container {
+            display: none;
+            width: 100%;
+            height: 100%;
             background-color: #fff;
         }
 
@@ -69,7 +115,7 @@
             display: flex;
         }
 
-        /* Barra Lateral esquerda */
+        /* Barra Lateral */
         .sidebar {
             width: 30%;
             min-width: 300px;
@@ -90,13 +136,40 @@
             padding: 0 16px;
         }
 
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #ccc; object-fit: cover; }
-        .chat-list { flex: 1; overflow-y: auto; }
-        .chat-item { display: flex; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f0f2f5; align-items: center; background-color: #ebebeb; }
-        .chat-info { flex: 1; margin-left: 15px; }
-        .chat-info-header h4 { font-size: 16px; color: #111b21; font-weight: 500; }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ccc;
+            object-fit: cover;
+        }
 
-        /* Janela do Chat Direita */
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            display: flex;
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f2f5;
+            align-items: center;
+            background-color: #ebebeb;
+        }
+
+        .chat-info {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .chat-info-header h4 {
+            font-size: 16px;
+            color: #111b21;
+            font-weight: 500;
+        }
+
+        /* Janela Principal do Chat */
         .chat-window {
             flex: 1;
             display: flex;
@@ -108,7 +181,7 @@
             position: relative;
         }
 
-        /* Área de Mensagens com rolagem interna perfeita */
+        /* Área das mensagens com rolagem interna */
         .chat-messages {
             flex: 1;
             padding: 20px 5%;
@@ -118,13 +191,45 @@
             gap: 12px;
         }
 
-        .message { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 14.2px; position: relative; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); word-wrap: break-word; }
-        .message.received { background-color: #fff; align-self: flex-start; border-top-left-radius: 0; }
-        .message.sent { background-color: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
-        .msg-userId { font-size: 11px; color: #00a884; font-weight: bold; display: block; margin-bottom: 2px; }
-        .msg-time { font-size: 11px; color: #667781; text-align: right; margin-top: 4px; display: block; }
+        .message {
+            max-width: 75%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14.2px;
+            position: relative;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+            word-wrap: break-word;
+        }
 
-        /* Barra de Input de Mensagem - SEMPRE VISÍVEL NO RODAPÉ */
+        .message.received {
+            background-color: #fff;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+        }
+
+        .message.sent {
+            background-color: #d9fdd3;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+
+        .msg-userId {
+            font-size: 11px;
+            color: #00a884;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .msg-time {
+            font-size: 11px;
+            color: #667781;
+            text-align: right;
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Campo de Digitação - Fixado perfeitamente na base */
         .chat-input-area {
             height: 62px;
             min-height: 62px;
@@ -146,33 +251,39 @@
             font-size: 15px;
         }
 
-        .btn-send { background: none; border: none; cursor: pointer; color: #54656f; font-size: 20px; padding: 8px; }
+        .btn-send {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #54656f;
+            font-size: 20px;
+            padding: 8px;
+        }
 
-        /* --- RESPONSIVIDADE PARA COMPUTADORES (Telas Grandes) --- */
+        /* --- CONFIGURAÇÃO DE TELAS (PC VS CELULAR) --- */
         @media (min-width: 769px) {
             body {
-                background-color: #d1d7db; /* Volta o fundo cinza do Whats Web */
+                background-color: #d1d7db;
             }
             .app-container {
                 width: 95%;
                 max-width: 1396px;
-                height: 95vh; /* Formato de janela centralizada no PC */
+                height: 95vh;
                 border-radius: 3px;
                 box-shadow: 0 6px 18px rgba(0,0,0,0.1);
             }
         }
 
-        /* --- RESPONSIVIDADE PARA CELULAR (Telas Pequenas) --- */
         @media (max-width: 768px) {
             .sidebar {
-                display: none; /* Esconde a barra lateral para dar espaço total ao chat */
+                display: none; /* Esconde lista de contatos no celular para focar no chat */
             }
             .auth-container {
                 margin: 15px;
                 padding: 20px;
             }
             .message {
-                max-width: 85%; /* Balão um pouco mais largo no celular */
+                max-width: 85%;
             }
         }
     </style>
@@ -180,8 +291,10 @@
 <body>
 
     <div class="auth-container" id="authScreen">
-        <div class="auth-logo">💬</div>
-        <h2 id="authTitle">Criar uma Conta</h2>
+        <div class="auth-logo" style="font-weight: 700; color: #00a884; font-size: 42px; letter-spacing: -1px; margin-bottom: 5px;">
+            talkr<span style="color: #667781; font-size: 26px;">.</span>
+        </div>
+        <h2 id="authTitle" style="margin-top: 5px;">Criar uma Conta</h2>
         <p id="authSubtitle">Insira seus dados para começar a conversar</p>
 
         <div class="input-group" id="nickGroup">
@@ -211,15 +324,18 @@
     <div class="app-container" id="chatScreen">
         <aside class="sidebar">
             <div class="header">
-                <img src="https://picsum.photos/40/40?random=1" alt="Meu Perfil" class="avatar">
-                <span id="myDisplayNick" style="font-weight: 600; color: #54656f; font-size: 14px;">Nick</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="https://picsum.photos/40/40?random=1" alt="Meu Perfil" class="avatar">
+                    <span id="myDisplayNick" style="font-weight: 600; color: #111b21; font-size: 14px;">Nick</span>
+                </div>
+                <span style="font-size: 12px; font-weight: 700; color: #00a884; background: #e8faf4; padding: 3px 8px; border-radius: 20px;">Talkr App</span>
             </div>
             <div class="chat-list">
                 <div class="chat-item">
                     <img src="https://picsum.photos/40/40?random=2" alt="Contato" class="avatar">
                     <div class="chat-info">
                         <div class="chat-info-header">
-                            <h4>Sala Geral (Firebase)</h4>
+                            <h4>Sala Geral</h4>
                         </div>
                     </div>
                 </div>
@@ -255,6 +371,7 @@
             getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+        // Suas credenciais mantidas intactas
         const firebaseConfig = {
             apiKey: "AIzaSyA5EOG4RmeobQtlkvaurl1wCfKq-SXqxic",
             authDomain: "chat-27707.firebaseapp.com",
@@ -274,6 +391,7 @@
         const authScreen = document.getElementById('authScreen');
         const chatScreen = document.getElementById('chatScreen');
 
+        // Alternar Login/Cadastro
         window.toggleAuthMode = function(e) {
             e.preventDefault();
             isSignUpMode = !isSignUpMode;
@@ -299,6 +417,7 @@
             }
         }
 
+        // Processo de autenticação
         window.handleAuth = async function() {
             const email = document.getElementById('emailInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
@@ -320,6 +439,7 @@
             }
         }
 
+        // Monitor de Login/Logout
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUserData = user;
@@ -335,6 +455,7 @@
             }
         });
 
+        // Enviar Mensagem para o Firestore
         async function sendMessage() {
             const messageInput = document.getElementById('messageInput');
             const text = messageInput.value.trim();
@@ -353,6 +474,7 @@
             }
         }
 
+        // Escuta em tempo real obedecendo suas novas regras de segurança
         function startChatListener() {
             const chatMessages = document.getElementById('chatMessages');
             const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
@@ -385,6 +507,7 @@
             });
         }
 
+        // Captura de eventos de clique e teclado
         document.getElementById('btnSend').addEventListener('click', sendMessage);
         document.getElementById('messageInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
