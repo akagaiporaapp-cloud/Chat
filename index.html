@@ -249,7 +249,7 @@
             display: block;
         }
 
-        /* Barra de Entrada corrigida com Safe-Area para botões virtuais */
+        /* Barra de Digitação com proteção safe-area */
         .chat-input-area {
             min-height: 62px;
             background-color: #f0f2f5;
@@ -469,7 +469,8 @@
         let activeSnapshotUnsubscribe = null; 
         let sidebarRoomsUnsubscribe = null; 
         let localJoinedRoomsList = []; 
-        let initialLoadDone = false; // Flag para ignorar notificações ao carregar o histórico pela primeira vez
+        let initialLoadDone = false; 
+        let serviceWorkerRegistration = null; // Guarda o sw registrado
 
         const authScreen = document.getElementById('authScreen');
         const chatScreen = document.getElementById('chatScreen');
@@ -480,6 +481,18 @@
                 if (document.activeElement.tagName === 'INPUT') {
                     document.activeElement.scrollIntoView({ block: 'nearest' });
                 }
+            });
+        }
+
+        // --- INSTALAÇÃO E REGISTRO PROFISSIONAL DO SERVICE WORKER ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => {
+                        serviceWorkerRegistration = reg;
+                        console.log('Service Worker registrado com sucesso no escopo: ', reg.scope);
+                    })
+                    .catch(err => console.error('Falha ao registrar Service Worker: ', err));
             });
         }
 
@@ -528,12 +541,11 @@
             } catch (error) { alert("Erro: " + error.message); }
         }
 
-        // --- ATIVAÇÃO DAS NOTIFICAÇÕES NATIVAS ---
         function requestNotificationPermission() {
             if ("Notification" in window) {
                 Notification.requestPermission().then(permission => {
                     if (permission === "granted") {
-                        console.log("Notificações autorizadas pelo usuário!");
+                        console.log("Notificações autorizadas!");
                     }
                 });
             }
@@ -551,7 +563,6 @@
                 switchRoom('geral');
                 checkMobileView();
                 
-                // Pede a autorização assim que loga
                 requestNotificationPermission();
 
                 if(!sessionStorage.getItem('talkr_help_shown')) {
@@ -645,7 +656,7 @@
 
         window.switchRoom = function(roomId) {
             activeRoomId = roomId;
-            initialLoadDone = false; // Reseta a flag ao mudar de sala para ler o histórico limpo
+            initialLoadDone = false; 
             
             document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
             
@@ -708,15 +719,17 @@
             } catch (error) { console.error("Erro ao enviar:", error); }
         }
 
-        // DISPARADOR DE NOTIFICAÇÃO SE O APP ESTIVER MINIMIZADO/OCULTO
+        // DISPARADOR ATUALIZADO: Força o disparo através do Service Worker registrado
         function triggerPushNotification(senderNick, messageText) {
-            // Só dispara se a aba NÃO estiver visível na tela no momento
-            if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+            if (document.hidden && Notification.permission === "granted" && serviceWorkerRegistration) {
                 const salaNome = activeRoomId === 'geral' ? 'Sala Geral' : `Sala Privada (${activeRoomId})`;
                 
-                new Notification(`Talkr — ${salaNome}`, {
+                // Dispara a notificação usando o Worker persistente do sistema operacional
+                serviceWorkerRegistration.showNotification(`Talkr — ${salaNome}`, {
                     body: `${senderNick}: ${messageText}`,
-                    icon: "https://picsum.photos/192/192?random=1"
+                    icon: "https://picsum.photos/192/192?random=1",
+                    badge: "https://picsum.photos/96/96?random=1",
+                    data: { url: window.location.href }
                 });
             }
         }
@@ -758,23 +771,18 @@
                     `;
                     chatMessages.appendChild(messageDiv);
                 });
-                
                 chatMessages.scrollTop = chatMessages.scrollHeight;
 
-                // Lógica de Notificação Inteligente
                 if (snapshot.docChanges().length > 0 && initialLoadDone) {
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === "added") {
                             const newMsg = change.doc.data();
-                            // Só notifica se a mensagem veio de outra pessoa
                             if (newMsg.userId !== currentUserData.uid) {
                                 triggerPushNotification(newMsg.nick, newMsg.text);
                             }
                         }
                     });
                 }
-                
-                // Após carregar a primeira leva de mensagens antigas, ativa as notificações para as próximas novas
                 initialLoadDone = true; 
             });
         }
