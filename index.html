@@ -12,11 +12,10 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Ajuste crítico para evitar que o teclado ou botões do sistema joguem o app para baixo */
         html, body {
             width: 100%;
             height: 100%;
-            height: -webkit-fill-available; /* Força o tamanho correto no iOS/Android Safari/Chrome */
+            height: -webkit-fill-available;
             overflow: hidden;
             background-color: #d1d7db;
         }
@@ -250,12 +249,11 @@
             display: block;
         }
 
-        /* CORREÇÃO DO CAMPO DE DIGITAÇÃO: safe-area impede que os botões fiquem por cima */
+        /* Barra de Entrada corrigida com Safe-Area para botões virtuais */
         .chat-input-area {
             min-height: 62px;
             background-color: #f0f2f5;
             padding: 10px 16px;
-            /* Adiciona um preenchimento extra embaixo se o celular tiver barra de navegação virtual */
             padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); 
             display: flex;
             align-items: center;
@@ -471,12 +469,12 @@
         let activeSnapshotUnsubscribe = null; 
         let sidebarRoomsUnsubscribe = null; 
         let localJoinedRoomsList = []; 
+        let initialLoadDone = false; // Flag para ignorar notificações ao carregar o histórico pela primeira vez
 
         const authScreen = document.getElementById('authScreen');
         const chatScreen = document.getElementById('chatScreen');
         const helpModal = document.getElementById('helpModal');
 
-        // Impede que o scroll do teclado quebre o layout no Android
         if (/Android/i.test(navigator.userAgent)) {
             window.addEventListener('resize', () => {
                 if (document.activeElement.tagName === 'INPUT') {
@@ -530,6 +528,17 @@
             } catch (error) { alert("Erro: " + error.message); }
         }
 
+        // --- ATIVAÇÃO DAS NOTIFICAÇÕES NATIVAS ---
+        function requestNotificationPermission() {
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        console.log("Notificações autorizadas pelo usuário!");
+                    }
+                });
+            }
+        }
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUserData = user;
@@ -541,6 +550,9 @@
                 startSidebarRoomsListener();
                 switchRoom('geral');
                 checkMobileView();
+                
+                // Pede a autorização assim que loga
+                requestNotificationPermission();
 
                 if(!sessionStorage.getItem('talkr_help_shown')) {
                     toggleHelpModal(true);
@@ -633,6 +645,7 @@
 
         window.switchRoom = function(roomId) {
             activeRoomId = roomId;
+            initialLoadDone = false; // Reseta a flag ao mudar de sala para ler o histórico limpo
             
             document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
             
@@ -695,6 +708,19 @@
             } catch (error) { console.error("Erro ao enviar:", error); }
         }
 
+        // DISPARADOR DE NOTIFICAÇÃO SE O APP ESTIVER MINIMIZADO/OCULTO
+        function triggerPushNotification(senderNick, messageText) {
+            // Só dispara se a aba NÃO estiver visível na tela no momento
+            if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+                const salaNome = activeRoomId === 'geral' ? 'Sala Geral' : `Sala Privada (${activeRoomId})`;
+                
+                new Notification(`Talkr — ${salaNome}`, {
+                    body: `${senderNick}: ${messageText}`,
+                    icon: "https://picsum.photos/192/192?random=1"
+                });
+            }
+        }
+
         function startChatListener(roomId) {
             if (activeSnapshotUnsubscribe) activeSnapshotUnsubscribe();
 
@@ -732,7 +758,24 @@
                     `;
                     chatMessages.appendChild(messageDiv);
                 });
+                
                 chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                // Lógica de Notificação Inteligente
+                if (snapshot.docChanges().length > 0 && initialLoadDone) {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "added") {
+                            const newMsg = change.doc.data();
+                            // Só notifica se a mensagem veio de outra pessoa
+                            if (newMsg.userId !== currentUserData.uid) {
+                                triggerPushNotification(newMsg.nick, newMsg.text);
+                            }
+                        }
+                    });
+                }
+                
+                // Após carregar a primeira leva de mensagens antigas, ativa as notificações para as próximas novas
+                initialLoadDone = true; 
             });
         }
 
