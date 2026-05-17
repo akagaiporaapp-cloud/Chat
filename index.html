@@ -375,7 +375,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
-            getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, where 
+            getFirestore, collection, doc, setDoc, query, onSnapshot, serverTimestamp, where 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { 
             getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged 
@@ -446,12 +446,10 @@
                 currentUserData = user;
                 document.getElementById('myDisplayNick').innerText = user.displayName || "Sem Nick";
                 
-                // FLUXO CORRIGIDO: Ativa o monitor de salas ANTES de exibir o chat na tela
-                startSidebarRoomsListener();
-                
                 authScreen.classList.add('hidden');
                 chatScreen.classList.add('visible');
                 
+                startSidebarRoomsListener();
                 switchRoom('geral');
                 checkMobileView();
             } else {
@@ -462,6 +460,7 @@
             }
         });
 
+        // CORREÇÃO CRÍTICA: Usa setDoc com ID único combinado para cravar a sala no seu perfil
         window.joinPrivateRoom = async function() {
             const codeInput = document.getElementById('roomCodeInput');
             const code = codeInput.value.trim().toLowerCase();
@@ -469,14 +468,11 @@
             if (!code) return alert("Digite um código de sala válido!");
             if (code === 'geral') return alert("Esse código é reservado!");
 
-            if (localJoinedRoomsList.includes(code)) {
-                switchRoom(code);
-                codeInput.value = '';
-                return;
-            }
-
             try {
-                await addDoc(collection(db, "user_rooms"), {
+                // Cria um identificador único para que essa sala pertença a você de forma fixa
+                const docUniqueKey = `${currentUserData.uid}_${code}`;
+                
+                await setDoc(doc(db, "user_rooms", docUniqueKey), {
                     userId: currentUserData.uid,
                     roomCode: code
                 });
@@ -484,7 +480,7 @@
                 codeInput.value = '';
                 switchRoom(code);
             } catch (error) {
-                console.error("Erro ao vincular sala no Firebase:", error);
+                console.error("Erro ao vincular sala:", error);
             }
         }
 
@@ -496,7 +492,6 @@
                 where("userId", "==", currentUserData.uid)
             );
 
-            // Escuta em tempo real. Qualquer mudança ou recarga vai puxar os dados na hora
             sidebarRoomsUnsubscribe = onSnapshot(q, (snapshot) => {
                 localJoinedRoomsList = [];
                 snapshot.forEach(doc => {
@@ -512,6 +507,8 @@
 
         function renderSidebarRooms() {
             const listContainer = document.getElementById('roomsList');
+            
+            // Mantém a estrutura limpa e reconstrói mantendo os estados ativos corretos
             listContainer.innerHTML = `
                 <div class="chat-item ${activeRoomId === 'geral' ? 'active' : ''}" id="item-geral" onclick="switchRoom('geral')">
                     <img src="https://picsum.photos/40/40?random=99" class="avatar" alt="Geral">
@@ -542,9 +539,14 @@
         window.switchRoom = function(roomId) {
             activeRoomId = roomId;
             
+            // Corrige a marcação visual da barra lateral antes de carregar as mensagens
             document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
-            const currentItem = document.getElementById(`item-${roomId}`);
-            if (currentItem) currentItem.classList.add('active');
+            
+            // Aguarda um milissegundo para o elemento renderizar e marca como ativo
+            setTimeout(() => {
+                const currentItem = document.getElementById(`item-${roomId}`);
+                if (currentItem) currentItem.classList.add('active');
+            }, 50);
 
             const titleEl = document.getElementById('currentRoomTitle');
             const subEl = document.getElementById('currentRoomSubtitle');
@@ -595,7 +597,7 @@
                     timestamp: serverTimestamp()
                 };
 
-                await addDoc(collection(db, "messages"), messageData);
+                await setDoc(doc(collection(db, "messages")), messageData);
                 messageInput.value = '';
             } catch (error) { console.error("Erro ao enviar:", error); }
         }
